@@ -24,7 +24,11 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "langchain>=0.0.175",
+  "requests",
+  "sseclient",
+]
 
 [project.urls]
 Documentation = "https://github.com/unknown/langchain-wenxin#readme"
@@ -38,9 +42,6 @@ path = "src/langchain_wenxin/__about__.py"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
-  "langchain>=0.0.175",
-  "requests",
-  "sseclient",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
