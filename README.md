@@ -31,7 +31,7 @@ export BAIDU_SECRET_KEY="xxxxx"
 from langchain_wenxin.llms import Wenxin,ChatWenxin
 
 # Wenxin model
-llm = Wenxin()
+llm = Wenxin(model="eb-instant")
 print(llm("你好"))
 
 # Wenxin chat model
@@ -39,6 +39,10 @@ from langchain.schema import HumanMessage
 llm = ChatWenxin()
 print(llm([HumanMessage(content="你好")]))
 ```
+
+Support models:
+- wenxin: 文心一言
+- eb-instant: 文心 EB-Lite
 
 ## License
 
