@@ -23,7 +23,7 @@ from langchain.utils import get_from_dict_or_env
 from pydantic import BaseModel, Extra, root_validator
 
 
-class _WenxinClient(object):
+class WenxinClient():
     WENXIN_TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
     WENXIN_CHAT_URL = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{endpoint}"
 
@@ -64,7 +64,8 @@ class _WenxinClient(object):
         self.access_token_expires = now_timestamp + response["expires_in"]
         return self.access_token
 
-    def _construct_message(self, prompt: str, history: List[Tuple[str, str]]) -> List[Any]:
+    @staticmethod
+    def construct_message(prompt: str, history: List[Tuple[str, str]]) -> List[Any]:
         messages = []
         for human, ai in history:
             messages.append({"role": "user", "content": human})
@@ -88,7 +89,7 @@ class _WenxinClient(object):
         r = requests.post(
             url=self.completions_url(model),
             params=params,
-            json={"messages": self._construct_message(
+            json={"messages": self.construct_message(
                 prompt, history), "stream": True},
             timeout=self.request_timeout,
             stream=True,
@@ -123,7 +124,7 @@ class _WenxinClient(object):
         r = requests.post(
             url=self.completions_url(model),
             params=params,
-            json={"messages": self._construct_message(prompt, history)},
+            json={"messages": self.construct_message(prompt, history)},
             timeout=self.request_timeout,
         )
         r.raise_for_status()
@@ -166,7 +167,7 @@ class _BaiduCommon(BaseModel):
         baidu_secret_key = get_from_dict_or_env(
             values, "baidu_secret_key", "BAIDU_SECRET_KEY"
         )
-        values["client"] = _WenxinClient(
+        values["client"] = WenxinClient(
             baidu_api_key=baidu_api_key,
             baidu_secret_key=baidu_secret_key,
             request_timeout=values["request_timeout"],
