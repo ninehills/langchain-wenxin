@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
   "langchain>=0.0.175",
   "requests",
-  "sseclient",
+  "sseclient-py",
 ]
 
 [project.urls]
