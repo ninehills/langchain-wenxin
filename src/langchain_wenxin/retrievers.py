@@ -13,7 +13,7 @@ from langchain.schema import BaseRetriever
 @dataclass
 class BaizhongSearchParams:
     # 查询库索引,与项目ID一致
-    project_id: str
+    project_id: int
     # 返回query相关内容数量
     size: int
     # faiss检索返回数量
