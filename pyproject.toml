@@ -28,6 +28,7 @@ dependencies = [
   "langchain>=0.0.175",
   "requests",
   "sseclient-py",
+  "numpy",
 ]
 
 [project.urls]
