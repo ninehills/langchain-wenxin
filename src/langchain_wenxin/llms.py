@@ -42,7 +42,7 @@ class WenxinClient():
     def completions_url(self, model: str) -> str:
         """Get the URL for the completions endpoint."""
         endpoint = "completions"
-        if model == "eb-instant":
+        if model in ["eb-instant", "ernie-bot-turbo"]:
             endpoint = "eb-instant"
         return self.WENXIN_CHAT_URL.format(endpoint=endpoint)
 
@@ -148,21 +148,23 @@ class WenxinClient():
 
 class BaiduCommon(BaseModel):
     client: Any = None  #: :meta private:
-    model: str = "wenxin"
-    """Model name to use. supported models: wenxin/eb-instant"""
+    model: str = "ernie-bot"
+    """Model name to use. supported models: ernie-bot(wenxin)/ernie-bot-turbo(eb-instant)"""
 
     temperature: Optional[float] = None
-    """A non-negative float that tunes the degree of randomness in generation.
-    range: [0.0, 1.0]."""
+    """A non-negative float that tunes the degree of randomness in generation. Model default is 0.95.
+    range: (0.0, 1.0]."""
 
     penalty_score: Optional[float] = None
     """Repeating punishment involves penalizing already generated tokens to reduce the occurrence of repetition.
     The larger the value, the greater the punishment. Setting it too high can result in poorer text generation
-    for long texts. range: [1.0, 2.0]."""
+    for long texts. Model default is 1.0.
+    range: [1.0, 2.0]."""
 
     top_p: Optional[float] = None
     """Diversity influences the diversity of output text.
-    The larger the value, the stronger the diversity of the generated text. range: [0.0, 1.0]."""
+    The larger the value, the stronger the diversity of the generated text. Model default is 0.8.
+    range: (0.0, 1.0]."""
 
     streaming: bool = False
     """Whether to stream the results."""

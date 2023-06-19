@@ -31,7 +31,7 @@ export BAIDU_SECRET_KEY="xxxxx"
 from langchain_wenxin.llms import Wenxin,ChatWenxin
 
 # Wenxin model
-llm = Wenxin(model="eb-instant")
+llm = Wenxin(model="ernie-bot-turbo")
 print(llm("你好"))
 
 # Wenxin chat model
@@ -41,8 +41,11 @@ print(llm([HumanMessage(content="你好")]))
 ```
 
 Support models:
-- wenxin: 文心一言
-- eb-instant: 文心 EB-Lite
+
+- ernie-bot: 标准模型，<https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11>
+    - Also named `wenxin` for compatibility.
+- ernie-bot-turbo: 快速模型，<https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf>
+    - Also named `eb-instant` for compatibility.
 
 ## License
 
