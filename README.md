@@ -28,7 +28,7 @@ export BAIDU_SECRET_KEY="xxxxx"
 ```
 
 ```python3
-from langchain_wenxin.llms import Wenxin,ChatWenxin
+from langchain_wenxin.llms import Wenxin
 
 # Wenxin model
 llm = Wenxin(model="ernie-bot-turbo")
@@ -43,6 +43,7 @@ import asyncio
 print(asyncio.run(llm._acall("你好")))
 
 # Wenxin chat model
+from langchain_wenxin.chat_models import ChatWenxin
 from langchain.schema import HumanMessage
 llm = ChatWenxin()
 print(llm([HumanMessage(content="你好")]))
