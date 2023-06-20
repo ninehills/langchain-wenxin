@@ -34,6 +34,14 @@ from langchain_wenxin.llms import Wenxin,ChatWenxin
 llm = Wenxin(model="ernie-bot-turbo")
 print(llm("你好"))
 
+# stream call
+for i in llm.stream("你好"):
+    print(i)
+
+# async call
+import asyncio
+print(asyncio.run(llm._acall("你好")))
+
 # Wenxin chat model
 from langchain.schema import HumanMessage
 llm = ChatWenxin()

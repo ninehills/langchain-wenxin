@@ -29,6 +29,7 @@ dependencies = [
   "requests",
   "sseclient-py",
   "numpy",
+  "aiohttp",
 ]
 
 [project.urls]
@@ -43,6 +44,7 @@ path = "src/langchain_wenxin/__about__.py"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "pytest-asyncio",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
