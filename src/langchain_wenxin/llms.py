@@ -323,11 +323,11 @@ class Wenxin(LLM, BaiduCommon):
                 for token in generator:
                     yield token
         """
-        for r in self.client.completion_stream(
+        return self.client.completion_stream(
+            model=self.model,
             prompt=prompt,
             history=[],
-            **self._default_params):
-            yield r["result"]
+            **self._default_params)
 
 
 class ChatWenxin(BaseChatModel, BaiduCommon):
@@ -397,8 +397,10 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
     ) -> ChatResult:
         prompt, history = self._convert_messages_to_prompt(messages)
-        params: Dict[str, Any] = {"prompt": prompt,
-                                  "history": history, **self._default_params}
+        params: Dict[str, Any] = {
+            "model": self.model,
+            "prompt": prompt,
+            "history": history, **self._default_params}
 
         if self.streaming:
             completion = ""

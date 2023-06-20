@@ -42,10 +42,23 @@ print(llm([HumanMessage(content="你好")]))
 
 Support models:
 
-- ernie-bot: 标准模型，<https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11>
+- ernie-bot: Standard model, <https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11>
     - Also named `wenxin` for compatibility.
-- ernie-bot-turbo: 快速模型，<https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf>
+- ernie-bot-turbo: Fast model, <https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf>
     - Also named `eb-instant` for compatibility.
+
+## Development
+
+```bash
+# Create virtual environment
+hatch env create
+# Activate virtual environment
+hatch shell
+# Run test
+export BAIDU_API_KEY="xxxxxxxx"
+export BAIDU_SECRET_KEY="xxxxxxxx"
+hatch run test
+```
 
 ## License
 
