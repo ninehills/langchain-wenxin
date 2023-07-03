@@ -13,11 +13,11 @@ from langchain.schema import BaseRetriever
 
 @dataclass
 class BaizhongSearchParams:
-    # 查询库索引,与项目ID一致
+    # 查询库索引，与项目 ID 一致
     project_id: int
-    # 返回query相关内容数量
+    # 返回 query 相关内容数量
     size: int
-    # faiss检索返回数量
+    # faiss 检索返回数量
     db_top: Optional[int] = None
     # 精排排序结果条数
     rank_top: Optional[int] = None
@@ -105,6 +105,8 @@ class Baizhong(BaseRetriever):
 
 def find_outliers(data: List[float], max_size: int):
     """计算离群值，data 必须是一个倒序排列的数组"""
+    if len(data) <= max_size:
+        return data
     # 计算相邻元素的差值
     diff = [data[i] - data[i+1] for i in range(len(data) - 1)]
     # 计算平均差值
@@ -116,7 +118,7 @@ def find_outliers(data: List[float], max_size: int):
         # 如果元素与其后续元素的差值大于平均差值
         if (data[i] - data[i+1]) > avg_diff:
             outliers.append(data[i])
-            # 如果找到3个离群值则退出循环
+            # 如果找到 3 个离群值则退出循环
             if len(outliers) == max_size:
                 break
     # 如果没有找到离群值，返回数组中的最大值作为一个离群值
