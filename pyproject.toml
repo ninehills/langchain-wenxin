@@ -32,9 +32,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/unknown/langchain-wenxin#readme"
-Issues = "https://github.com/unknown/langchain-wenxin/issues"
-Source = "https://github.com/unknown/langchain-wenxin"
+Documentation = "https://github.com/ninehills/langchain-wenxin#readme"
+Issues = "https://github.com/ninehills/langchain-wenxin/issues"
+Source = "https://github.com/ninehills/langchain-wenxin"
 
 [tool.hatch.version]
 path = "src/langchain_wenxin/__about__.py"
