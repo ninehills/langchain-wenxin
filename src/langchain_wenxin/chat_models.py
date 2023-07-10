@@ -22,9 +22,8 @@ from langchain_wenxin.llms import BaiduCommon
 class ChatWenxin(BaseChatModel, BaiduCommon):
     r"""Wrapper around Baidu Wenxin's large language model.
 
-    To use, you should have the ``requests`` python package installed, and the
-    environment variable ``BAIDU_API_KEY`` and ``BAIDU_SECRET_KEY``, or pass
-    it as a named parameter to the constructor.
+    To use, you should have the environment variable ``BAIDU_API_KEY`` and
+    ``BAIDU_SECRET_KEY``, or pass it as a named parameter to the constructor.
 
     Example:
         .. code-block:: python

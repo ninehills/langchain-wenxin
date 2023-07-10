@@ -47,6 +47,12 @@ from langchain_wenxin.chat_models import ChatWenxin
 from langchain.schema import HumanMessage
 llm = ChatWenxin()
 print(llm([HumanMessage(content="你好")]))
+
+# Wenxin embeddings model
+from langchain_wenxin.embeddings import WenxinEmbeddings
+wenxin_embed = WenxinEmbeddings(truncate="END")
+print(wenxin_embed.embed_query("hello"))
+print(wenxin_embed.embed_documents(["hello"]))
 ```
 
 Support models:
