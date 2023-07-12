@@ -6,4 +6,3 @@ from langchain_wenxin.chat_models import ChatWenxin  # noqa: F401
 from langchain_wenxin.client import WenxinClient  # noqa: F401
 from langchain_wenxin.embeddings import WenxinEmbeddings  # noqa: F401
 from langchain_wenxin.llms import Wenxin  # noqa: F401
-from langchain_wenxin.retrievers import Baizhong  # noqa: F401
