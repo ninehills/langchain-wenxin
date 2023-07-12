@@ -84,10 +84,6 @@ class BaiduCommon(BaseModel):
         """Get the identifying parameters."""
         return {**{}, **self._default_params}
 
-    def get_num_tokens(self, text: str) -> int:
-        """Calculate number of tokens, use text length."""
-        return len(text)
-
 
 class Wenxin(LLM, BaiduCommon):
     r"""Wrapper around Baidu Wenxin large language models.
@@ -231,3 +227,7 @@ class Wenxin(LLM, BaiduCommon):
             prompt=prompt,
             history=[],
             **self._default_params)
+
+    def get_num_tokens(self, text: str) -> int:
+        """Calculate number of tokens, use text length."""
+        return len(text)
