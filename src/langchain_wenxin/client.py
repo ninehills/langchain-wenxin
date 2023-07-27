@@ -27,9 +27,10 @@ class WenxinClient:
 
     def completions_url(self, model: str) -> str:
         """Get the URL for the completions endpoint."""
-        endpoint = "completions"
         if model in ["eb-instant", "ernie-bot-turbo"]:
             endpoint = "eb-instant"
+        elif model in  ["wenxin", "ernie-bot"]:
+            endpoint = "completions"
         else:
             endpoint = model
         return self.WENXIN_CHAT_URL.format(endpoint=endpoint)
