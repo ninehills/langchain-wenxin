@@ -61,6 +61,7 @@ Support models:
     - Also named `wenxin` for compatibility.
 - ernie-bot-turbo: Fast model, <https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf>
     - Also named `eb-instant` for compatibility.
+- other endpoints: eg: bloomz_7b1 or other custom endpoint.
 
 ## Development
 

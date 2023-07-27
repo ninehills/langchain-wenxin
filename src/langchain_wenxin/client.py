@@ -30,6 +30,8 @@ class WenxinClient:
         endpoint = "completions"
         if model in ["eb-instant", "ernie-bot-turbo"]:
             endpoint = "eb-instant"
+        else:
+            endpoint = model
         return self.WENXIN_CHAT_URL.format(endpoint=endpoint)
 
     def grant_token(self) -> str:

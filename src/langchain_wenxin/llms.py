@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class BaiduCommon(BaseModel):
     client: Any = None  #: :meta private:
     model: str = "ernie-bot"
-    """Model name to use. supported models: ernie-bot(wenxin)/ernie-bot-turbo(eb-instant)"""
+    """Model name to use. supported models: ernie-bot(wenxin)/ernie-bot-turbo(eb-instant)/other endpoints"""
 
     temperature: Optional[float] = None
     """A non-negative float that tunes the degree of randomness in generation. Model default is 0.95.
