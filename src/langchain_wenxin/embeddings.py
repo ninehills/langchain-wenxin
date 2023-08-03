@@ -23,7 +23,7 @@ class WenxinEmbeddings(BaseModel, Embeddings):
             )
     """
 
-    client: Any  #: :meta private:
+    client: Any = None #: :meta private:
     model: str = "embedding-v1"
     """Model name to use."""
 
@@ -42,7 +42,7 @@ class WenxinEmbeddings(BaseModel, Embeddings):
         extra = Extra.forbid
 
     @root_validator()
-    def validate_environment(cls, values: Dict) -> Dict:
+    def validate_environment(cls, values: Dict) -> Dict:  # noqa: N805
         """Validate that api key and python package exists in environment."""
         baidu_api_key = get_from_dict_or_env(
             values, "baidu_api_key", "BAIDU_API_KEY"

@@ -24,7 +24,7 @@ def test_wenxin_streaming() -> None:
     assert isinstance(generator, Generator)
 
     for token in generator:
-        assert isinstance(token["result"], str)
+        assert isinstance(token, str)
 
 
 def test_wenxin_streaming_callback() -> None:

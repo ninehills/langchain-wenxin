@@ -1,13 +1,14 @@
 """Wrapper around Baidu Wenxin APIs."""
 import logging
 import warnings
-from typing import Any, Dict, Generator, List, Mapping, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional
 
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForLLMRun,
     CallbackManagerForLLMRun,
 )
 from langchain.llms.base import LLM
+from langchain.schema.output import GenerationChunk
 from langchain.utils import get_from_dict_or_env
 from pydantic import BaseModel, Extra, root_validator
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaiduCommon(BaseModel):
-    client: Any = None  #: :meta private:
+    client: Any = None #: :meta private:
     model: str = "ernie-bot"
     """Model name to use. supported models: ernie-bot(wenxin)/ernie-bot-turbo(eb-instant)/other endpoints"""
 
@@ -49,7 +50,7 @@ class BaiduCommon(BaseModel):
     """Baidu Cloud secret key."""
 
     @root_validator()
-    def validate_environment(cls, values: Dict) -> Dict:
+    def validate_environment(cls, values: Dict) -> Dict:  # noqa: N805
         """Validate that api key and python package exists in environment."""
         baidu_api_key = get_from_dict_or_env(
             values, "baidu_api_key", "BAIDU_API_KEY"
@@ -79,7 +80,11 @@ class BaiduCommon(BaseModel):
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
         """Get the identifying parameters."""
-        return {**{}, **self._default_params}
+        return {**{"model": self.model}, **self._default_params}
+
+    def _invocation_params(self, **kwargs: Any) -> dict:
+        params = self._default_params
+        return {**params, **kwargs}
 
     @property
     def max_message_length(self) -> int:
@@ -110,7 +115,7 @@ class Wenxin(LLM, BaiduCommon):
     """
 
     @root_validator()
-    def raise_warning(cls, values: Dict) -> Dict:
+    def raise_warning(cls, values: Dict) -> Dict:  # noqa: N805
         """Raise warning that this class is deprecated."""
         warnings.warn(
             "This Wenxin LLM is deprecated. "
@@ -133,7 +138,7 @@ class Wenxin(LLM, BaiduCommon):
     def _call(
         self,
         prompt: str,
-        stop: Optional[List[str]] = None,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> str:
@@ -153,7 +158,7 @@ class Wenxin(LLM, BaiduCommon):
                 response = model(prompt)
 
         """
-        params = {**self._default_params, **kwargs}
+        params = self._invocation_params(**kwargs)
         if self.streaming:
             stream_resp = self.client.completion_stream(
                 model=self.model,
@@ -179,12 +184,12 @@ class Wenxin(LLM, BaiduCommon):
     async def _acall(
         self,
         prompt: str,
-        stop: Optional[List[str]] = None,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
         run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> str:
         """Call out to Wenxin's completion endpoint asynchronously."""
-        params = {**self._default_params, **kwargs}
+        params = self._invocation_params(**kwargs)
         if self.streaming:
             stream_resp = self.client.acompletion_stream(
                 model=self.model,
@@ -207,33 +212,43 @@ class Wenxin(LLM, BaiduCommon):
         )
         return response["result"]
 
-    def stream(self, prompt: str, stop: Optional[List[str]] = None) -> Generator:
-        r"""Call Baidu Wenxin completion_stream and return the resulting generator.
+    def _stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[GenerationChunk]:
+        """Call Wenxin completion_stream and return the resulting generator."""
+        params = self._invocation_params(**kwargs)
 
-        BETA: this is a beta feature while we figure out the right abstraction.
-        Once that happens, this interface could change.
-
-        Args:
-            prompt: The prompt to pass into the model.
-            stop: Optional list of stop words to use when generating.
-
-        Returns:
-            A generator representing the stream of tokens from Baidu Wenxin.
-
-        Example:
-            .. code-block:: python
-
-
-                prompt = "Write a poem about a stream."
-                generator = wenxin.stream(prompt)
-                for token in generator:
-                    yield token
-        """
-        return self.client.completion_stream(
+        for token in self.client.completion_stream(
             model=self.model,
             prompt=prompt,
             history=[],
-            **self._default_params)
+            **params):
+            yield GenerationChunk(text=token["result"])
+            if run_manager:
+                run_manager.on_llm_new_token(token["result"])
+
+    async def _astream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
+        run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[GenerationChunk]:
+        """Call Wenxin async completion_stream and return the resulting generator."""
+        params = self._invocation_params(**kwargs)
+
+        async for token in self.client.acompletion_stream(
+            model=self.model,
+            prompt=prompt,
+            history=[],
+            **params):
+            yield GenerationChunk(text=token["result"])
+            if run_manager:
+                await run_manager.on_llm_new_token(token["result"])
 
     def get_num_tokens(self, text: str) -> int:
         """Calculate number of tokens, use text length."""

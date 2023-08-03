@@ -1,6 +1,6 @@
 """Chat wrapper around Baidu Wenxin APIs."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple
 
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForLLMRun,
@@ -8,12 +8,16 @@ from langchain.callbacks.manager import (
 )
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
-    AIMessage,
-    BaseMessage,
     ChatGeneration,
     ChatResult,
+)
+from langchain.schema.messages import (
+    AIMessage,
+    AIMessageChunk,
+    BaseMessage,
     HumanMessage,
 )
+from langchain.schema.output import ChatGenerationChunk
 from pydantic import Extra
 
 from langchain_wenxin.llms import BaiduCommon
@@ -57,7 +61,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
             List[Tuple[str, str]]: History
         """
         history = []
-        pair = [None, None]
+        pair: list[Any] = [None, None]
         order_error = "It must be in the order of user, assistant."
         last_message_error = "The last message must be a human message."
         for message in messages[:-1]:
@@ -81,7 +85,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     def _generate(
         self,
         messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
@@ -98,9 +102,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
                 result = delta["result"]
                 completion += result
                 if run_manager:
-                    run_manager.on_llm_new_token(
-                        result,
-                    )
+                    run_manager.on_llm_new_token(result)
         else:
             response = self.client.completion(**params)
             completion = response["result"]
@@ -110,7 +112,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     async def _agenerate(
         self,
         messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
+        stop: Optional[List[str]] = None,  # noqa: ARG002
         run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
@@ -127,19 +129,52 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
                 delta = data["result"]
                 completion += delta
                 if run_manager:
-                    await run_manager.on_llm_new_token(
-                        delta,
-                    )
-            stream_resp = self.client.completion_stream(**params)
-            for delta in stream_resp:
-                result = delta["result"]
-                completion += result
-                if run_manager:
-                    run_manager.on_llm_new_token(
-                        result,
-                    )
+                    await run_manager.on_llm_new_token(delta)
         else:
             response = await self.client.acompletion(**params)
             completion = response["result"]
         message = AIMessage(content=completion)
         return ChatResult(generations=[ChatGeneration(message=message)])
+
+    def _stream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,  # noqa: ARG002
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[ChatGenerationChunk]:
+        prompt, history = self._convert_messages_to_prompt(messages)
+        params: Dict[str, Any] = {
+            "model": self.model,
+            "prompt": prompt,
+            "history": history, **self._default_params, **kwargs}
+        stream_resp = self.client.completion_stream(**params)
+        for delta in stream_resp:
+            result = delta["result"]
+            yield ChatGenerationChunk(message=AIMessageChunk(content=result))
+            if run_manager:
+                run_manager.on_llm_new_token(result)
+
+
+    async def _astream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,  # noqa: ARG002
+        run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[ChatGenerationChunk]:
+        prompt, history = self._convert_messages_to_prompt(messages)
+        params: Dict[str, Any] = {
+            "model": self.model,
+            "prompt": prompt,
+            "history": history, **self._default_params, **kwargs}
+        stream_resp = self.client.acompletion_stream(**params)
+        async for data in stream_resp:
+            delta = data["result"]
+            yield ChatGenerationChunk(message=AIMessageChunk(content=delta))
+            if run_manager:
+                await run_manager.on_llm_new_token(delta)
+
+    def get_num_tokens(self, text: str) -> int:
+        """Calculate number of tokens, use text length."""
+        return len(text)

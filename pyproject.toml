@@ -24,7 +24,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "langchain>=0.0.175",
+  "langchain>=0.0.205",
   "requests",
   "sseclient-py",
   "numpy",

@@ -2,7 +2,7 @@
 import json
 import logging
 import time
-from typing import Any, Generator, List, Optional, Tuple
+from typing import Any, AsyncGenerator, Generator, List, Optional, Tuple
 
 import aiohttp
 import requests
@@ -182,7 +182,7 @@ class WenxinClient:
             stream=True,
         )
         r.raise_for_status()
-        if not r.headers.get("Content-Type").startswith("text/event-stream"):
+        if not r.headers.get("Content-Type", "").startswith("text/event-stream"):
             response = r.json()
             error_code = response.get("error_code", 0)
             if error_code != 0:
@@ -197,7 +197,7 @@ class WenxinClient:
             yield data
 
     async def acompletion_stream(self, model: str, prompt: str,
-                          history: List[Tuple[str, str]], **params) -> Generator:
+                          history: List[Tuple[str, str]], **params) -> AsyncGenerator:
         """Async call out to Wenxin's generate endpoint.
 
         Args:
@@ -221,7 +221,7 @@ class WenxinClient:
                 json=params,
             ) as r:
                 r.raise_for_status()
-                if not r.headers.get("Content-Type").startswith("text/event-stream"):
+                if not r.headers.get("Content-Type", "").startswith("text/event-stream"):
                     response = await r.json()
                     error_code = response.get("error_code", 0)
                     if error_code != 0:
