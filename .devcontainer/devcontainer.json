@@ -1,3 +1,12 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/python:0-3.8"
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.8",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance"
+			]
+		}
+	},
+	"postStartCommand": "pip3 install hatch && pip3 install -e ."
 }

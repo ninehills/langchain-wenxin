@@ -42,9 +42,6 @@ class BaiduCommon(BaseModel):
     request_timeout: Optional[int] = 600
     """Timeout for requests to Baidu Wenxin Completion API. Default is 600 seconds."""
 
-    max_message_length: Optional[int] = 2000
-    """Maximum length of last message."""
-
     baidu_api_key: Optional[str] = None
     """Baidu Cloud API key."""
 
@@ -83,6 +80,16 @@ class BaiduCommon(BaseModel):
     def _identifying_params(self) -> Mapping[str, Any]:
         """Get the identifying parameters."""
         return {**{}, **self._default_params}
+
+    @property
+    def max_message_length(self) -> int:
+        """Maximum length of last message."""
+        if self.model == "ernie-bot-turbo" or self.model == "eb-instant":
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf
+            return 11200
+        else:
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11
+            return 2000
 
 
 class Wenxin(LLM, BaiduCommon):
