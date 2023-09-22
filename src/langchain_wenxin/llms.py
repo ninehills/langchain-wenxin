@@ -10,7 +10,7 @@ from langchain.callbacks.manager import (
 from langchain.llms.base import LLM
 from langchain.schema.output import GenerationChunk
 from langchain.utils import get_from_dict_or_env
-from pydantic import BaseModel, Extra, root_validator
+from pydantic import BaseModel, Extra, Field, root_validator
 
 from langchain_wenxin.client import WenxinClient
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class BaiduCommon(BaseModel):
     client: Any = None #: :meta private:
-    model: str = "ernie-bot"
+    model_name: str = Field(default="ernie-bot", alias="model")
     """Model name to use. supported models: ernie-bot(wenxin)/ernie-bot-turbo(eb-instant)/other endpoints"""
 
     temperature: Optional[float] = None
@@ -65,37 +65,6 @@ class BaiduCommon(BaseModel):
         )
         return values
 
-    @property
-    def _default_params(self) -> Mapping[str, Any]:
-        """Get the default parameters for calling Anthropic API."""
-        d = {}
-        if self.temperature is not None:
-            d["temperature"] = self.temperature
-        if self.penalty_score is not None:
-            d["penalty_score"] = self.penalty_score
-        if self.top_p is not None:
-            d["top_p"] = self.top_p
-        return d
-
-    @property
-    def _identifying_params(self) -> Mapping[str, Any]:
-        """Get the identifying parameters."""
-        return {**{"model": self.model}, **self._default_params}
-
-    def _invocation_params(self, **kwargs: Any) -> dict:
-        params = self._default_params
-        return {**params, **kwargs}
-
-    @property
-    def max_message_length(self) -> int:
-        """Maximum length of last message."""
-        if self.model == "ernie-bot-turbo" or self.model == "eb-instant":
-            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf
-            return 11200
-        else:
-            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11
-            return 2000
-
 
 class Wenxin(LLM, BaiduCommon):
     r"""Wrapper around Baidu Wenxin large language models.
@@ -135,6 +104,38 @@ class Wenxin(LLM, BaiduCommon):
         """Return type of llm."""
         return "wenxin-llm"
 
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        """Get the identifying parameters."""
+        return {**{"model_name": self.model_name}, **self._default_params}
+
+    @property
+    def _default_params(self) -> Mapping[str, Any]:
+        """Get the default parameters for calling Anthropic API."""
+        d = {}
+        if self.temperature is not None:
+            d["temperature"] = self.temperature
+        if self.penalty_score is not None:
+            d["penalty_score"] = self.penalty_score
+        if self.top_p is not None:
+            d["top_p"] = self.top_p
+        return d
+
+    @property
+    def max_message_length(self) -> int:
+        """Maximum length of last message."""
+        if self.model_name in {"ernie-bot-turbo", "eb-instant"}:
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf
+            return 11200
+        else:
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11
+            return 2000
+
+    @property
+    def _invocation_params(self) -> Dict[str, Any]:
+        """Get the parameters used to invoke the model."""
+        return {**self._default_params}
+
     def _call(
         self,
         prompt: str,
@@ -158,10 +159,10 @@ class Wenxin(LLM, BaiduCommon):
                 response = model(prompt)
 
         """
-        params = self._invocation_params(**kwargs)
+        params = {**self._invocation_params, **kwargs}
         if self.streaming:
             stream_resp = self.client.completion_stream(
-                model=self.model,
+                model=self.model_name,
                 prompt=prompt,
                 history=[],
                 **params,
@@ -174,7 +175,7 @@ class Wenxin(LLM, BaiduCommon):
                 current_completion += result
             return current_completion
         response = self.client.completion(
-            model=self.model,
+            model=self.model_name,
             prompt=prompt,
             history=[],
             **params,
@@ -189,10 +190,10 @@ class Wenxin(LLM, BaiduCommon):
         **kwargs: Any,
     ) -> str:
         """Call out to Wenxin's completion endpoint asynchronously."""
-        params = self._invocation_params(**kwargs)
+        params = {**self._invocation_params, **kwargs}
         if self.streaming:
             stream_resp = self.client.acompletion_stream(
-                model=self.model,
+                model=self.model_name,
                 prompt=prompt,
                 history=[],
                 **params,
@@ -205,7 +206,7 @@ class Wenxin(LLM, BaiduCommon):
                     await run_manager.on_llm_new_token(delta, **data)
             return current_completion
         response = await self.client.acompletion(
-            model=self.model,
+            model=self.model_name,
             prompt=prompt,
             history=[],
             **params,
@@ -220,10 +221,10 @@ class Wenxin(LLM, BaiduCommon):
         **kwargs: Any,
     ) -> Iterator[GenerationChunk]:
         """Call Wenxin completion_stream and return the resulting generator."""
-        params = self._invocation_params(**kwargs)
+        params = {**self._invocation_params, **kwargs}
 
         for token in self.client.completion_stream(
-            model=self.model,
+            model=self.model_name,
             prompt=prompt,
             history=[],
             **params):
@@ -239,10 +240,10 @@ class Wenxin(LLM, BaiduCommon):
         **kwargs: Any,
     ) -> AsyncIterator[GenerationChunk]:
         """Call Wenxin async completion_stream and return the resulting generator."""
-        params = self._invocation_params(**kwargs)
+        params = {**self._invocation_params, **kwargs}
 
         async for token in self.client.acompletion_stream(
-            model=self.model,
+            model=self.model_name,
             prompt=prompt,
             history=[],
             **params):

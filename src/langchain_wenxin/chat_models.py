@@ -1,6 +1,6 @@
 """Chat wrapper around Baidu Wenxin APIs."""
 
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Tuple
 
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForLLMRun,
@@ -49,6 +49,38 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
         """Return type of chat model."""
         return "wenxin-chat"
 
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        """Get the identifying parameters."""
+        return {**{"model_name": self.model_name}, **self._default_params}
+
+    @property
+    def _default_params(self) -> Mapping[str, Any]:
+        """Get the default parameters for calling Anthropic API."""
+        d = {}
+        if self.temperature is not None:
+            d["temperature"] = self.temperature
+        if self.penalty_score is not None:
+            d["penalty_score"] = self.penalty_score
+        if self.top_p is not None:
+            d["top_p"] = self.top_p
+        return d
+
+    @property
+    def max_message_length(self) -> int:
+        """Maximum length of last message."""
+        if self.model_name in {"ernie-bot-turbo", "eb-instant"}:
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf
+            return 11200
+        else:
+            # https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11
+            return 2000
+
+    @property
+    def _invocation_params(self) -> Dict[str, Any]:
+        """Get the parameters used to invoke the model."""
+        return {**self._default_params}
+
     def _convert_messages_to_prompt(
             self, messages: List[BaseMessage]) -> Tuple[str, List[Tuple[str, str]]]:
         """Format a list of messages into prompt and history.
@@ -91,7 +123,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     ) -> ChatResult:
         prompt, history = self._convert_messages_to_prompt(messages)
         params: Dict[str, Any] = {
-            "model": self.model,
+            "model": self.model_name,
             "prompt": prompt,
             "history": history, **self._default_params, **kwargs}
 
@@ -118,7 +150,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     ) -> ChatResult:
         prompt, history = self._convert_messages_to_prompt(messages)
         params: Dict[str, Any] = {
-            "model": self.model,
+            "model": self.model_name,
             "prompt": prompt,
             "history": history, **self._default_params, **kwargs}
 
@@ -145,7 +177,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     ) -> Iterator[ChatGenerationChunk]:
         prompt, history = self._convert_messages_to_prompt(messages)
         params: Dict[str, Any] = {
-            "model": self.model,
+            "model": self.model_name,
             "prompt": prompt,
             "history": history, **self._default_params, **kwargs}
         stream_resp = self.client.completion_stream(**params)
@@ -165,7 +197,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
     ) -> AsyncIterator[ChatGenerationChunk]:
         prompt, history = self._convert_messages_to_prompt(messages)
         params: Dict[str, Any] = {
-            "model": self.model,
+            "model": self.model_name,
             "prompt": prompt,
             "history": history, **self._default_params, **kwargs}
         stream_resp = self.client.acompletion_stream(**params)

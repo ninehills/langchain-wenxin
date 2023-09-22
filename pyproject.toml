@@ -29,6 +29,7 @@ dependencies = [
   "sseclient-py",
   "numpy",
   "aiohttp",
+  "pydantic<2.0"
 ]
 
 [project.urls]

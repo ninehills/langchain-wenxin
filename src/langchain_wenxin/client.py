@@ -191,7 +191,7 @@ class WenxinClient:
                 raise Exception(msg)
             return response
 
-        client = sseclient.SSEClient(r)
+        client = sseclient.SSEClient(r) # type: ignore
         for event in client.events():
             data = json.loads(event.data)
             yield data

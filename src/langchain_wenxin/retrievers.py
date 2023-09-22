@@ -80,7 +80,7 @@ class Baizhong(BaseRetriever):
 
         docs = []
         for hit in res["hits"]:
-            page_content, metadata = self.para_decode_func(hit["_source"]["para"])
+            page_content, metadata = self.para_decode_func(hit["_source"]["para"]) # type: ignore
             doc = Document(
                 page_content=page_content,
                 metadata={
@@ -126,4 +126,3 @@ def find_outliers(data: List[float], max_size: int):
         outliers.append(data[0])
 
     return outliers
-
