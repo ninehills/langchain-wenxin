@@ -50,8 +50,19 @@ class WenxinEmbeddings(BaseModel, Embeddings):
         baidu_secret_key = get_from_dict_or_env(
             values, "baidu_secret_key", "BAIDU_SECRET_KEY"
         )
+        baidu_api_url = get_from_dict_or_env(
+            values, "baidu_api_url", "BAIDU_API_URL", default="https://aip.baidubce.com"
+        )
+        baidu_access_code = get_from_dict_or_env(
+            values, "baidu_access_code", "BAIDU_ACCESS_CODE", default=""
+        )
 
-        values["client"] = WenxinClient(baidu_api_key=baidu_api_key, baidu_secret_key=baidu_secret_key)
+        values["client"] = WenxinClient(
+            baidu_api_key=baidu_api_key,
+            baidu_secret_key=baidu_secret_key,
+            baidu_api_url=baidu_api_url,
+            baidu_access_code=baidu_access_code,
+        )
 
         return values
 

@@ -12,14 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 class WenxinClient:
-    WENXIN_TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
-    WENXIN_CHAT_URL = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{endpoint}"
-    WENXIN_EMBEDDINGS_URL = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/embeddings/{model}"
+    WENXIN_TOKEN_URL = "{url}/oauth/2.0/token"
+    WENXIN_CHAT_URL = "{url}/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/{endpoint}"
+    WENXIN_EMBEDDINGS_URL = "{url}/rpc/2.0/ai_custom/v1/wenxinworkshop/embeddings/{model}"
 
-    def __init__(self, baidu_api_key: str, baidu_secret_key: str,
+    def __init__(self, baidu_api_key: str, baidu_secret_key: str, baidu_api_url: str, baidu_access_code: str,
                  request_timeout: Optional[int] = None):
         self.baidu_api_key = baidu_api_key
         self.baidu_secret_key = baidu_secret_key
+        self.baidu_api_url = baidu_api_url
+        self.baidu_access_code = baidu_access_code
         self.request_timeout = request_timeout
 
         self.access_token = ""
@@ -33,7 +35,7 @@ class WenxinClient:
             endpoint = "completions"
         else:
             endpoint = model
-        return self.WENXIN_CHAT_URL.format(endpoint=endpoint)
+        return self.WENXIN_CHAT_URL.format(url=self.baidu_api_url, endpoint=endpoint)
 
     def grant_token(self) -> str:
         """Grant access token from Baidu Cloud."""
@@ -42,7 +44,7 @@ class WenxinClient:
             return self.access_token
 
         r = requests.get(
-            url=self.WENXIN_TOKEN_URL,
+            url=self.WENXIN_TOKEN_URL.format(url=self.baidu_api_url),
             params={
                 "grant_type": "client_credentials",
                 "client_id": self.baidu_api_key,
@@ -66,7 +68,7 @@ class WenxinClient:
         # It is used in a context manager fashion to ensure cleanup.
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                url=self.WENXIN_TOKEN_URL,
+                url=self.WENXIN_TOKEN_URL.format(url=self.baidu_api_url),
                 params={
                     "grant_type": "client_credentials",
                     "client_id": self.baidu_api_key,
@@ -105,9 +107,18 @@ class WenxinClient:
         params["stream"] = False
         url = self.completions_url(model)
         logger.debug(f"call wenxin: url[{url}], params[{params}]")
+        headers = {}
+        url_params = {}
+        if self.baidu_access_code:
+            headers["Authorization"] = f"ACCESSCODE {self.baidu_access_code}"
+        elif self.baidu_api_key and self.baidu_secret_key:
+            url_params["access_token"] = self.grant_token()
+        else:
+            # No auth
+            pass
         r = requests.post(
             url=url,
-            params={"access_token": self.grant_token()},
+            params=url_params,
             json=params,
             timeout=self.request_timeout,
         )
@@ -137,13 +148,23 @@ class WenxinClient:
         params["stream"] = False
         url = self.completions_url(model)
         logger.debug(f"async call wenxin: url[{url}], params[{params}]")
+        headers = {}
+        url_params = {}
+        if self.baidu_access_code:
+            headers["Authorization"] = f"ACCESSCODE {self.baidu_access_code}"
+        elif self.baidu_api_key and self.baidu_secret_key:
+            url_params["access_token"] = await self.async_grant_token()
+        else:
+            # No auth
+            pass
 
         # Here we are using aiohttp to make the request.
         # It is used in a context manager fashion to ensure cleanup.
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 url=url,
-                params={"access_token": await self.async_grant_token()},
+                params=url_params,
+                headers=headers,
                 json=params,
                 timeout=self.request_timeout,
             ) as r:
@@ -174,9 +195,19 @@ class WenxinClient:
         params["stream"] = True
         url = self.completions_url(model)
         logger.debug(f"call wenxin: url[{url}], params[{params}]")
+        headers = {}
+        url_params = {}
+        if self.baidu_access_code:
+            headers["Authorization"] = f"ACCESSCODE {self.baidu_access_code}"
+        elif self.baidu_api_key and self.baidu_secret_key:
+            url_params["access_token"] = self.grant_token()
+        else:
+            # No auth
+            pass
         r = requests.post(
             url=self.completions_url(model),
-            params={"access_token": self.grant_token()},
+            params=url_params,
+            headers=headers,
             json=params,
             timeout=self.request_timeout,
             stream=True,
@@ -212,12 +243,22 @@ class WenxinClient:
         params["stream"] = True
         url = self.completions_url(model)
         logger.debug(f"call wenxin: url[{url}], params[{params}]")
+        headers = {}
+        url_params = {}
+        if self.baidu_access_code:
+            headers["Authorization"] = f"ACCESSCODE {self.baidu_access_code}"
+        elif self.baidu_api_key and self.baidu_secret_key:
+            url_params["access_token"] = await self.async_grant_token()
+        else:
+            # No auth
+            pass
 
         timeout = aiohttp.ClientTimeout(total=self.request_timeout)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
                 url=self.completions_url(model),
-                params={"access_token": await self.async_grant_token()},
+                params=url_params,
+                headers=headers,
                 json=params,
             ) as r:
                 r.raise_for_status()
@@ -250,7 +291,7 @@ class WenxinClient:
 
     def embed(self, model: str, texts: List[str], truncate: Optional[str] = None):
         """Call out to Wenxin's embedding endpoint."""
-        url = self.WENXIN_EMBEDDINGS_URL.format(model=model)
+        url = self.WENXIN_EMBEDDINGS_URL.format(url=self.baidu_api_url, model=model)
         batch_size_limit = 16
         chars_limit = 384
         if len(texts) > batch_size_limit:
@@ -270,9 +311,19 @@ class WenxinClient:
         payload = {
             "input": sentences,
         }
+        headers = {}
+        url_params = {}
+        if self.baidu_access_code:
+            headers["Authorization"] = f"ACCESSCODE {self.baidu_access_code}"
+        elif self.baidu_api_key and self.baidu_secret_key:
+            url_params["access_token"] = self.grant_token()
+        else:
+            # No auth
+            pass
         r = requests.post(
             url,
-            params={"access_token": self.grant_token()},
+            params=url_params,
+            headers=headers,
             json=payload,
             timeout=self.request_timeout,
             )

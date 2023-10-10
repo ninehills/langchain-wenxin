@@ -53,14 +53,22 @@ class BaiduCommon(BaseModel):
     def validate_environment(cls, values: Dict) -> Dict:  # noqa: N805
         """Validate that api key and python package exists in environment."""
         baidu_api_key = get_from_dict_or_env(
-            values, "baidu_api_key", "BAIDU_API_KEY"
+            values, "baidu_api_key", "BAIDU_API_KEY", default=""
         )
         baidu_secret_key = get_from_dict_or_env(
-            values, "baidu_secret_key", "BAIDU_SECRET_KEY"
+            values, "baidu_secret_key", "BAIDU_SECRET_KEY", default=""
+        )
+        baidu_api_url = get_from_dict_or_env(
+            values, "baidu_api_url", "BAIDU_API_URL", default="https://aip.baidubce.com"
+        )
+        baidu_access_code = get_from_dict_or_env(
+            values, "baidu_access_code", "BAIDU_ACCESS_CODE", default=""
         )
         values["client"] = WenxinClient(
             baidu_api_key=baidu_api_key,
             baidu_secret_key=baidu_secret_key,
+            baidu_api_url=baidu_api_url,
+            baidu_access_code=baidu_access_code,
             request_timeout=values["request_timeout"],
         )
         return values

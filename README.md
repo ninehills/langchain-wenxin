@@ -23,7 +23,7 @@ WENXINWORKSHOP API: <https://cloud.baidu.com/doc/WENXINWORKSHOP/s/flfmc9do2>
 ## How to use
 
 ```bash
-export BAIDU_API_KEY="xxxxx"                            
+export BAIDU_API_KEY="xxxxx"
 export BAIDU_SECRET_KEY="xxxxx"
 ```
 
@@ -62,6 +62,10 @@ Support models:
 - ernie-bot-turbo: Fast model, <https://cloud.baidu.com/doc/WENXINWORKSHOP/s/4lilb2lpf>
     - Also named `eb-instant` for compatibility.
 - other endpoints: eg: bloomz_7b1 or other custom endpoint.
+
+## Qianfan Private
+
+You can set `BAIDU_API_URL` and `BAIDU_ACCESS_CODE` in environment variables.
 
 ## Development
 
