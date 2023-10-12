@@ -45,10 +45,10 @@ class WenxinEmbeddings(BaseModel, Embeddings):
     def validate_environment(cls, values: Dict) -> Dict:  # noqa: N805
         """Validate that api key and python package exists in environment."""
         baidu_api_key = get_from_dict_or_env(
-            values, "baidu_api_key", "BAIDU_API_KEY"
+            values, "baidu_api_key", "BAIDU_API_KEY", default=""
         )
         baidu_secret_key = get_from_dict_or_env(
-            values, "baidu_secret_key", "BAIDU_SECRET_KEY"
+            values, "baidu_secret_key", "BAIDU_SECRET_KEY", default=""
         )
         baidu_api_url = get_from_dict_or_env(
             values, "baidu_api_url", "BAIDU_API_URL", default="https://aip.baidubce.com"
