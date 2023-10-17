@@ -99,6 +99,7 @@ class ChatWenxin(BaseChatModel, BaiduCommon):
         for message in messages[:-1]:
             if message.type == "system":
                 history.append((message.content, "OK\n"))
+                continue
             if pair[0] is None:
                 if message.type == "human":
                     pair[0] = message.content

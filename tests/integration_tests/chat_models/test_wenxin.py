@@ -6,6 +6,7 @@ from langchain.callbacks.manager import CallbackManager
 from langchain.schema import (
     AIMessage,
     BaseMessage,
+    SystemMessage,
     ChatGeneration,
     HumanMessage,
     LLMResult,
@@ -29,6 +30,24 @@ def test_wenxin_generate() -> None:
     chat = ChatWenxin(model="ernie-bot")
     chat_messages: List[List[BaseMessage]] = [
         [HumanMessage(content="How many toes do dogs have?")]
+    ]
+    messages_copy = [messages.copy() for messages in chat_messages]
+    result: LLMResult = chat.generate(chat_messages)
+    assert isinstance(result, LLMResult)
+    for response in result.generations[0]:
+        assert isinstance(response, ChatGeneration)
+        assert isinstance(response.text, str)
+        assert response.text == response.message.content
+    assert chat_messages == messages_copy
+
+def test_wenxin_system() -> None:
+    """Test generate method of wenxin."""
+    chat = ChatWenxin(model="ernie-bot")
+    chat_messages: List[List[BaseMessage]] = [
+        [
+            SystemMessage(content="你是一个大语言模型。"),
+            HumanMessage(content="How many toes do dogs have?"),
+        ]
     ]
     messages_copy = [messages.copy() for messages in chat_messages]
     result: LLMResult = chat.generate(chat_messages)
