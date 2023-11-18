@@ -1,5 +1,7 @@
 # langchain-wenxin - Langchain Baidu WENXINWORKSHOP wrapper
 
+# 请迁移到： https://python.langchain.com/docs/integrations/chat/baidu_qianfan_endpoint  本项目后续不再维护
+
 [![PyPI - Version](https://img.shields.io/pypi/v/langchain-wenxin.svg)](https://pypi.org/project/langchain-wenxin)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/langchain-wenxin.svg)](https://pypi.org/project/langchain-wenxin)
 
